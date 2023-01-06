@@ -8,30 +8,67 @@
 <body>
 <canvas id="canvas" width="300" height="300"></canvas>
 <img src="heart_13.png" id="heart_13" style="display: none;">
+<button id="play">play</button>
 
 <script type="text/javascript">
 	const canvas=document.getElementById('canvas');
 	const ctx=canvas.getContext('2d');
 	const cardName='heart_13';
+	const btnName='play';
 	const cardPadding=10;
 	const img=document.getElementById(cardName);
+	const btn=document.getElementById(btnName);
+	let moveStarted=false;
+	let moveStopped=false;
+	let timeStamp=0;
+	let xFrom=0;
+	let yFrom=0;
+	let cardWidth=100;
+	let imgAspectRatio;
+	let cardHeight;
 
-	ctx.fillStyle='rgb(0,80,0)';
-	ctx.fillRect(0,0,canvas.width,canvas.height);
-	
 	function addImage(){
-		const imgAspectRatio=img.naturalWidth/img.naturalHeight;
-		const cardWidth=100;
-		const cardHeight=cardWidth/imgAspectRatio;
-		const imagesCanvas=document.createElement('canvas');
-		const imageCtx=imagesCanvas.getContext('2d');
-		imagesCanvas.width=cardWidth;
-		imagesCanvas.height=cardHeight;
-		imageCtx.drawImage(img,0,0,cardWidth,cardHeight);
-		ctx.drawImage(imagesCanvas,cardPadding,cardPadding);
+		if(!moveStarted){
+			xFrom+=cardPadding;
+			yFrom+=cardPadding;	
+		}else{
+			xFrom+=movedXPerFrame;
+			yFrom+=movedYPerFrame;	
+		}
+		moveStarted=true;
+		if (xFrom>xTo){
+			moveStopped=true;
+		}
+		if (moveStopped){
+			clearInterval(timeStamp);
+			return;
+		}
+		
+		ctx.clearRect(0,0,canvas.width,canvas.height);
+		ctx.fillStyle='rgb(0,80,0)';
+		ctx.fillRect(0,0,canvas.width,canvas.height);
+		ctx.drawImage(img,xFrom,yFrom,cardWidth,cardHeight);
+		
 	}
 
-	img.onload=addImage;
+	img.onload=function(){
+		imgAspectRatio=(img.naturalWidth)/(img.naturalHeight);
+		cardHeight=cardWidth/imgAspectRatio;
+		xTo=canvas.width-cardWidth-cardPadding;
+		yTo=canvas.height-cardHeight-cardPadding;
+		//linear animation
+		frames=60;
+		distanceX=xTo-xFrom;
+		distanceY=yTo-yFrom;
+		movedXPerFrame=distanceX/frames;
+		movedYPerFrame=distanceY/frames;
+		
+		addImage();
+		};
+
+		btn.addEventListener('click',(e)=>{
+			timeStamp=setInterval(addImage,50)
+		})
 </script>
 </body>
 </html>
