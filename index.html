@@ -2,73 +2,85 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>solitaired</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>solitaired - 01 linear ease</title>
 </head>
 <body>
-<canvas id="canvas" width="300" height="300"></canvas>
+<canvas id="canvas" width="600" height="600"></canvas>
 <img src="heart_13.png" id="heart_13" style="display: none;">
 <button id="play">play</button>
 
 <script type="text/javascript">
 	const canvas=document.getElementById('canvas');
 	const ctx=canvas.getContext('2d');
+	const cardWidth=150;
+	const cardPadding=10;
+	const steps=50;
 	const cardName='heart_13';
 	const btnName='play';
-	const cardPadding=10;
-	const img=document.getElementById(cardName);
 	const btn=document.getElementById(btnName);
-	let moveStarted=false;
-	let moveStopped=false;
-	let timeStamp=0;
-	let xFrom=0;
-	let yFrom=0;
-	let cardWidth=100;
+	const img=document.getElementById(cardName);
+
+	let xFrom=cardPadding;
+	let xTo=canvas.width-cardWidth-cardPadding;
+	let distanceX=xTo-xFrom;
+	let movedXPerStep=distanceX/steps;
+	let yFrom=cardPadding;
 	let imgAspectRatio;
 	let cardHeight;
+	let timeStamp=0;
+	let distanceY=0;
+	let movedYPerStep=0;
 
-	function addImage(){
-		if(!moveStarted){
-			xFrom+=cardPadding;
-			yFrom+=cardPadding;	
-		}else{
-			xFrom+=movedXPerFrame;
-			yFrom+=movedYPerFrame;	
-		}
-		moveStarted=true;
-		if (xFrom>xTo){
-			moveStopped=true;
-		}
-		if (moveStopped){
+	function drawImage(){
+		ctx.drawImage(img,xFrom,yFrom,cardWidth,cardHeight);
+	}
+
+	//linear ease
+	function linearEase(){
+		if(xFrom>=xTo || yFrom>=yTo){//stop animation
 			clearInterval(timeStamp);
-			return;
+			xFrom=xTo;
+			yFrom=yTo;
+		}else{
+			xFrom+=movedXPerStep;
+			yFrom+=movedYPerStep;
 		}
-		
-		ctx.clearRect(0,0,canvas.width,canvas.height);
+		drawImage(img,xFrom,yFrom,cardWidth,cardHeight);
+	}
+
+	btn.addEventListener('click',(e)=>{
+		//reset coordinate
+		xFrom=yFrom=cardPadding;
+		timeStamp=setInterval(()=>{
+		initCanvas();
+		clearCanvas();
+		linearEase();
+		},50)
+	})
+
+	function initCanvas(){
 		ctx.fillStyle='rgb(0,80,0)';
 		ctx.fillRect(0,0,canvas.width,canvas.height);
-		ctx.drawImage(img,xFrom,yFrom,cardWidth,cardHeight);
-		
+	}
+
+	function clearCanvas(){
+		ctx.clearRect(0,0,canvas.width,canvas.height);
 	}
 
 	img.onload=function(){
-		imgAspectRatio=(img.naturalWidth)/(img.naturalHeight);
+		imgAspectRatio=(this.naturalWidth)/(this.naturalHeight);
 		cardHeight=cardWidth/imgAspectRatio;
-		xTo=canvas.width-cardWidth-cardPadding;
 		yTo=canvas.height-cardHeight-cardPadding;
-		//linear animation
-		frames=60;
-		distanceX=xTo-xFrom;
 		distanceY=yTo-yFrom;
-		movedXPerFrame=distanceX/frames;
-		movedYPerFrame=distanceY/frames;
-		
-		addImage();
-		};
+		movedYPerStep=distanceY/steps;
+	}
 
-		btn.addEventListener('click',(e)=>{
-			timeStamp=setInterval(addImage,50)
-		})
+	window.onload=function(){
+		initCanvas();
+		clearCanvas();
+		drawImage();
+	}
 </script>
 </body>
 </html>
